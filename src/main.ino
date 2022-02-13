@@ -141,59 +141,8 @@ void loop()
     {
       //need a function that handles our balance detection while moving in a direction, so we're not looking to stay perfectly balanced
     }
-    /*
-    else //Just hovering
-    {
-      //We want to continue to stabilize if nothing is happening
-      int balanceState = balanceController.detectImbalance(x, y);
-      int heightState = balanceController.detectHeightImbalance();
-      if (balanceState == 2 || heightState == 4)
-      {
-        //Critical state, have to attempt to stabilize
-        servoX.moveToHover();
-        servoY.moveToHover();
-        allowControls = false;
-      }
-      else if (balanceState == 1)
-      {
-        //Make a microadjustment
-        servoX.adjust(x);
-        servoY.adjust(y);
-      }
-      switch (heightState)
-      {
-      case 3: //Increase speed
-        motors.increaseSpeed();
-        break;
-      case 2: //Lower speed
-        motors.decreaseSpeed();
-        break;
-      case 1: //Above max altitude
-        //Probably write some loop here in the balance controller?
-        break;
-      }
-    }*/
   }
-  /*
-  else
-  {
-    //If we're not allowing controls, we stay here until the drone is stabilized
-    while (!balanceController.balance(x, y))
-    {
-      servoX.moveTo(x);
-      servoY.moveTo(y);
-      //Will also need to adjust the rotor here so it doesn't fly like crazy
-    }
-    allowControls = true;
-    //Probably need to reset all values in the classes
-  }
-  */
 }
-
-// void takeOff(){
-
-// }
-
 void PIDStabilize(){
   balanceController->readAccelerometerValues();
   PID->stabilize();
@@ -212,49 +161,5 @@ void PIDStabilize(){
 void takeOff()
 {
   motors->kill();
-  /*
-  float currentHeight = balanceController.readHeight();
-  while ((balanceController.readHeight() - currentHeight) < 5) //Slowly increase speed until we have lift
-  {
-    motors.increaseSpeed();
-    delay(50);
-  }
-  while (balanceController.detectHeightImbalance()) //Continue rising at this speed until we are within our hover range
-  {
-    makeMicroAdjustments();
-    delay(30);
-  }
-  int balanceStatus = balanceController.balanceHeight();
-  motors.decreaseSpeed();
-  while (balanceStatus) //Loop until we can decide we are within the allowable range (10 loops?)
-  {
-    balanceStatus = balanceController.balanceHeight();
-    //Make adjustments to speed if we are outside the ranges
-    if (balanceStatus == 2)
-    {
-      motors.decreaseSpeed();
-    }
-    else if (balanceStatus == 1)
-    {
-      motors.increaseSpeed();
-    }
-    //Make microadjustments to the servos as we rise
-    makeMicroAdjustments();
-
-    delay(30);
-  }
-  */
-}
-
-void makeMicroAdjustments()
-{
-  balanceController->readAccelerometerValues();
-  if (x > .3)
-  {
-    //servoX.adjust(x);
-  }
-  if (y > .2)
-  {
-    //servoY.adjust(y);
-  }
+  
 }
