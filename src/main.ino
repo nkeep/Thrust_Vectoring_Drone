@@ -5,86 +5,143 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_ADXL345_U.h>
+#include <TVCLED.h>
+#include <TVCPID.h>
+#include <Ewma.h>
+#include <TVCBuzzer.h>
 
-bool allowControls;
-bool isControlled;
+bool allowControls = true;
+bool isControlled = false;
 bool hasTakenOff = false;
-float x;
-float y;
-float height;
+int t = -1;
+
+
+double x, y, z, height;
+int esc1_m = 3;
+int esc2_m = 4;
+int rLED = 5;
+int gLED = 6;
+int bLED = 7;
+int buzzerPin = 8;
+int servoXPin = 11;
+int servoYPin = 12;
+int batteryPin = A3;
+
+TVCServo *servoX;
+TVCServo *servoY;
+BalanceController *balanceController;
+TVCMotor *motors;
+TVCLED *LED;
+TVCPID *PID;
+TVCBuzzer *buzzer;
+double outputX, outputY;
+Ewma xFilter(0.3);
+Ewma yFilter(0.3);
 
 void setup()
 {
   Serial.begin(9600);
-  TVCServo servoX;
-  TVCServo servoY;
-  BalanceController balanceController;
-  TVCMotor motors;
-  motors = new TVCMotor(8, 9);
 
-  servoX.self.attach(2);
-  servoY.self.attach(3);
+  balanceController = new BalanceController(x,y,z);
+  balanceController->begin();
 
-  servoX.moveTo(90);
-  servoY.moveTo(90);
+  balanceController->readAccelerometerValues();
+
+  PID = new TVCPID(x, y, &outputX, &outputY, &x, &y);
+  PID->begin();
+
+  LED = new TVCLED(rLED, gLED, bLED);
+  LED->begin();
+
+  motors = new TVCMotor(esc1_m, esc2_m);
+  motors->begin();
+
+  servoX = new TVCServo(servoXPin, 100);
+  servoX->begin();
+
+  servoY = new TVCServo(servoYPin, 67);
+  servoY->begin();
+
+  buzzer = new TVCBuzzer(buzzerPin);
+
+
+  int batteryValue = analogRead(batteryPin);
+  // if(batteryValue < 400){
+  //   while(true){
+  //     Serial.println("Battery is dying.");
+  //   }
+  // }
+
 }
 
 void loop()
 {
-  delay(30);
-  sensors_event_t event;
-  accel.getEvent(&event);
-  String t;
+  LED->changeColor(RED);
 
+  allowControls = true;
+  delay(30);
   if (allowControls)
   {
-    t = "-1";
-    while (Serial.available())
+    Serial.print(t);
+    if(Serial.available())
     {
-      t += (char)Serial.read();
-      Serial.print(t);
+      t = (int)Serial.read() - 48;
+      Serial.println(t);
     }
-    if (t == "0")
-    {
-      isControlled = false;
-      allowControls = false; //We'll likely need to stabilize after moving
-      servoX.slowMoveToHover();
-      servoY.slowMoveToHover();
-    }
-    else if (t == "1")
-    {
-      isControlled = true;
-      servoY.moveTo(80);
-      // Will need to speed up the rotor to not gradually fall
-    }
-    else if (t == "4")
-    {
-      isControlled = true;
-      servoY.moveTo(0);
-    }
-    else if (t == "2")
-    {
-      isControlled = true;
-      servoX.moveTo(80);
-    }
-    else if (t == "3")
-    {
-      isControlled = true;
-      servoX.moveTo(0);
-    }
-    else if (t == "5")
-    {
-      if (!hasTakenOff)
-      {
-        hasTakenOff = true;
-        takeOff();
-      }
+    switch(t){
+      case -1:
+        Serial.println("PID stabilizing");
+        isControlled = false;
+        PIDStabilize();
+        break;
+      case 0:
+        t = -1;
+        break;
+      case 1:
+        Serial.print("1 is pressed");
+        isControlled = true;
+        servoY->moveForward();
+        // Will need to speed up the rotor to not gradually fall
+        break;
+      case 2:
+        Serial.print("2 is pressed");
+        isControlled = true;
+        servoX->moveBackward();
+        break;
+      case 3:
+        Serial.print("3 is pressed");
+        isControlled = true;
+        servoX->moveForward();
+        break;
+      case 4:
+        Serial.print("4 is pressed");
+        isControlled = true;
+        servoY->moveBackward();
+        break;
+      case 5:
+        buzzer->playIndianaJones();
+        //motors->kill();
+        break;
+      case 6:
+        motors->increaseSpeed();
+        break;
+      case 7:
+        motors->decreaseSpeed();
+        break;
+      case 8:
+        //buzzer->playIndianaJones();
+        break;
+      default:
+        
+        ;
+
     }
     //Button is being held
     if (isControlled)
     {
       //need a function that handles our balance detection while moving in a direction, so we're not looking to stay perfectly balanced
     }
+    /*
     else //Just hovering
     {
       //We want to continue to stabilize if nothing is happening
@@ -106,17 +163,18 @@ void loop()
       switch (heightState)
       {
       case 3: //Increase speed
-        rotors.increaseSpeed();
+        motors.increaseSpeed();
         break;
       case 2: //Lower speed
-        rotors.lowerSpeed();
+        motors.decreaseSpeed();
         break;
       case 1: //Above max altitude
         //Probably write some loop here in the balance controller?
         break;
       }
-    }
+    }*/
   }
+  /*
   else
   {
     //If we're not allowing controls, we stay here until the drone is stabilized
@@ -129,12 +187,34 @@ void loop()
     allowControls = true;
     //Probably need to reset all values in the classes
   }
+  */
 }
+
+// void takeOff(){
+
+// }
+
+void PIDStabilize(){
+  balanceController->readAccelerometerValues();
+  PID->stabilize();
+  float filteredX = xFilter.filter(servoX->hoverSetPoint - (outputX/2));
+  float filteredY = yFilter.filter(servoY->hoverSetPoint - (outputY/2));
+  servoX->moveTo((int)filteredX);
+  servoY->moveTo((int)filteredY);
+  Serial.print("x output:");
+  Serial.print(outputX);
+  Serial.println(x);
+  delay(100);
+}
+
+
 
 void takeOff()
 {
+  motors->kill();
+  /*
   float currentHeight = balanceController.readHeight();
-  while (balanceController.readHeight() - currentHeight < 5) //Slowly increase speed until we have lift
+  while ((balanceController.readHeight() - currentHeight) < 5) //Slowly increase speed until we have lift
   {
     motors.increaseSpeed();
     delay(50);
@@ -163,17 +243,18 @@ void takeOff()
 
     delay(30);
   }
+  */
 }
 
 void makeMicroAdjustments()
 {
-  balanceController.readAccelerometerValues(x, y);
+  balanceController->readAccelerometerValues();
   if (x > .3)
   {
-    servoX.adjust(x);
+    //servoX.adjust(x);
   }
   if (y > .2)
   {
-    servoY.adjust(y);
+    //servoY.adjust(y);
   }
 }

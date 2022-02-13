@@ -11,23 +11,17 @@ public:
     float prevAlt;
     float floorHeight;
     float hoverHeight;
-    Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified();
+    double *x, *y, *z;
+    Adafruit_ADXL345_Unified accel;
     Adafruit_BMP085 bmp;
 
-    BalanceController()
-    {
-        floorHeight = bmp.readAltitude();
-        hoverHeight = floorHeight + 50;
-    }
+    BalanceController(double &x, double &y, double &z);
 
-    void readAccelerometerValues(float &x, float &y)
-    {
-        sensors_event_t event;
-        accel.getEvent(&event);
-        x = event.acceleration.x;
-        y = event.acceleration.y;
-    }
+    void begin();
 
+    void readAccelerometerValues();
+
+/*
     int detectImbalance(float &x, float &y) //Returns values based on how big the difference is from past acceleromter readings
     {
         sensors_event_t event;
@@ -79,8 +73,8 @@ public:
     {
         sensors_event_t event;
         accel.getEvent(&event);
-        accelX = event.acceleration.x;
-        accelY = event.acceleration.y;
+        float accelX = event.acceleration.x;
+        float accelY = event.acceleration.y;
         x = 40 + -(accelX * 4);
         y = 40 + -(accelY * 4);
         if (abs(accelX) < .25 && abs(accelY) < .25)
@@ -104,7 +98,8 @@ public:
     }
     float readHeight()
     {
-        return bmp.readAltitude();
+        //return bmp.readAltitude();
+        return accel.getZ();
     }
     int balanceHeight() //Will loop and once we have been inside the range for 10 loops, we decide we are balanced
     {
@@ -129,5 +124,6 @@ public:
             numBalances = 0;
             return 1;
         }
-    }
+        return 0;
+    }*/
 };
