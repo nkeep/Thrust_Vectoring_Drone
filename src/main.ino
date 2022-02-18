@@ -17,14 +17,14 @@ int t = -1;
 
 
 double x, y, z, height;
-int esc1_m = 3;
-int esc2_m = 4;
+int esc1_m = 11;
+int esc2_m = 12;
 int rLED = 5;
 int gLED = 6;
 int bLED = 7;
 int buzzerPin = 8;
-int servoXPin = 11;
-int servoYPin = 12;
+int servoXPin = 3;
+int servoYPin = 4;
 int batteryPin = A3;
 
 TVCServo *servoX;
@@ -45,7 +45,14 @@ void setup()
   balanceController = new BalanceController(x,y,z);
   balanceController->begin();
 
+  Serial.println("1");
   balanceController->readAccelerometerValues();
+  Serial.println("2");
+
+  digitalWrite(esc1_m, LOW);
+  digitalWrite(esc2_m, LOW);
+  delay(500);
+  
 
   PID = new TVCPID(x, y, &outputX, &outputY, &x, &y);
   PID->begin();
@@ -66,6 +73,8 @@ void setup()
 
 
   int batteryValue = analogRead(batteryPin);
+  Serial.print("battery value: ");
+  Serial.print(batteryValue);
   // if(batteryValue < 400){
   //   while(true){
   //     Serial.println("Battery is dying.");
@@ -76,10 +85,11 @@ void setup()
 
 void loop()
 {
-  LED->changeColor(RED);
+  //LED->changeColor(RED);
+  //Serial.println("got to the loop");
 
   allowControls = true;
-  delay(30);
+  delay(300);
   if (allowControls)
   {
     Serial.print(t);
@@ -92,7 +102,7 @@ void loop()
       case -1:
         Serial.println("PID stabilizing");
         isControlled = false;
-        PIDStabilize();
+        //PIDStabilize();
         break;
       case 0:
         t = -1;
@@ -100,27 +110,31 @@ void loop()
       case 1:
         Serial.print("1 is pressed");
         isControlled = true;
+        LED->changeColor(BLUE);
         servoY->moveForward();
         // Will need to speed up the rotor to not gradually fall
         break;
       case 2:
         Serial.print("2 is pressed");
         isControlled = true;
+        LED->changeColor(GREEN);
         servoX->moveBackward();
         break;
       case 3:
         Serial.print("3 is pressed");
         isControlled = true;
+        LED->changeColor(RED);
         servoX->moveForward();
         break;
       case 4:
         Serial.print("4 is pressed");
         isControlled = true;
+        LED->changeColor(CYAN);
         servoY->moveBackward();
         break;
       case 5:
+        motors->kill();
         buzzer->playIndianaJones();
-        //motors->kill();
         break;
       case 6:
         motors->increaseSpeed();
@@ -153,7 +167,7 @@ void PIDStabilize(){
   Serial.print("x output:");
   Serial.print(outputX);
   Serial.println(x);
-  delay(100);
+  delay(200);
 }
 
 

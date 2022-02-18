@@ -3,7 +3,7 @@
 class TVCPID{
     public:
         double setPointX, setPointY, *outputX, *outputY, *x, *y;
-        double kp=4,ki=0,kd=0;
+        double kp=2,ki=0,kd=0;
         PID *xPID;
         double prevXVal = 0, prevYVal = 0;
         PID *yPID;
