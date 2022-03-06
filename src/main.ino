@@ -13,6 +13,7 @@
 bool allowControls = true;
 bool isControlled = false;
 bool hasTakenOff = false;
+bool inCalibration = true;
 int t = -1;
 
 
@@ -27,6 +28,10 @@ int servoXPin = 3;
 int servoYPin = 4;
 int batteryPin = A3;
 
+String readString;
+int readX;
+int readY;
+
 TVCServo *servoX;
 TVCServo *servoY;
 BalanceController *balanceController;
@@ -35,8 +40,8 @@ TVCLED *LED;
 TVCPID *PID;
 TVCBuzzer *buzzer;
 double outputX, outputY;
-Ewma xFilter(0.3);
-Ewma yFilter(0.3);
+Ewma xFilter(0.6);
+Ewma yFilter(0.6);
 
 void setup()
 {
@@ -45,17 +50,10 @@ void setup()
   balanceController = new BalanceController(x,y,z);
   balanceController->begin();
 
-  Serial.println("1");
-  balanceController->readAccelerometerValues();
-  Serial.println("2");
-
-  digitalWrite(esc1_m, LOW);
-  digitalWrite(esc2_m, LOW);
-  delay(500);
+  // balanceController->readAccelerometerValues();
   
-
-  PID = new TVCPID(x, y, &outputX, &outputY, &x, &y);
-  PID->begin();
+  // PID = new TVCPID(x, y, &outputX, &outputY, &x, &y);
+  // PID->begin();
 
   LED = new TVCLED(rLED, gLED, bLED);
   LED->begin();
@@ -63,10 +61,10 @@ void setup()
   motors = new TVCMotor(esc1_m, esc2_m);
   motors->begin();
 
-  servoX = new TVCServo(servoXPin, 100);
+  servoX = new TVCServo(servoXPin, 120); //80, 115
   servoX->begin();
 
-  servoY = new TVCServo(servoYPin, 67);
+  servoY = new TVCServo(servoYPin, 87); //67, 87
   servoY->begin();
 
   buzzer = new TVCBuzzer(buzzerPin);
@@ -76,98 +74,102 @@ void setup()
   Serial.print("battery value: ");
   Serial.print(batteryValue);
   // if(batteryValue < 400){
-  //   while(true){
-  //     Serial.println("Battery is dying.");
-  //   }
+  //   buzzer->playIndianaJones();
   // }
 
 }
 
 void loop()
 {
-  //LED->changeColor(RED);
-  //Serial.println("got to the loop");
+  delay(100);
+  LED->changeColor(RED);
+  readString = "";
+  bool readServos = false; // Tells us to read the Y value if X is read during the loop
 
-  allowControls = true;
-  delay(300);
-  if (allowControls)
-  {
-    Serial.print(t);
-    if(Serial.available())
-    {
-      t = (int)Serial.read() - 48;
-      Serial.println(t);
+  while(inCalibration){ // Loop for calibrating servos
+    while(Serial.available()){
+      char c = Serial.read();
+      if(c == '1'){ // Left
+        servoX->calibrate(-1);
+      } else if(c == '2'){ // Right
+        servoX->calibrate(1);
+      } else if(c == '3'){ // Up
+        servoY->calibrate(1);
+      } else if(c == '4'){ // Down
+        servoY->calibrate(-1);
+      } else if(c == 'C'){
+        continue;
+      } else if(c == 'S'){
+        Serial.println("End of the calibration phase");
+        balanceController->readAccelerometerValues();
+        PID = new TVCPID(x, y, &outputX, &outputY, &x, &y);
+        PID->begin();
+        inCalibration = false;
+        break;
+      }
     }
-    switch(t){
-      case -1:
-        Serial.println("PID stabilizing");
-        isControlled = false;
-        //PIDStabilize();
+  }
+
+  while(Serial.available()) //General loop on controller page of app
+  {
+    char c = Serial.read();
+    switch(c){
+      case ':':
+        readX = readString.toInt();
+        readString = "";
+        readServos = true;
         break;
-      case 0:
-        t = -1;
-        break;
-      case 1:
-        Serial.print("1 is pressed");
-        isControlled = true;
-        LED->changeColor(BLUE);
-        servoY->moveForward();
-        // Will need to speed up the rotor to not gradually fall
-        break;
-      case 2:
-        Serial.print("2 is pressed");
-        isControlled = true;
-        LED->changeColor(GREEN);
-        servoX->moveBackward();
-        break;
-      case 3:
-        Serial.print("3 is pressed");
-        isControlled = true;
-        LED->changeColor(RED);
-        servoX->moveForward();
-        break;
-      case 4:
-        Serial.print("4 is pressed");
-        isControlled = true;
-        LED->changeColor(CYAN);
-        servoY->moveBackward();
-        break;
-      case 5:
-        motors->kill();
-        buzzer->playIndianaJones();
-        break;
-      case 6:
+      case 'R':
         motors->increaseSpeed();
         break;
-      case 7:
+      case 'L':
         motors->decreaseSpeed();
         break;
-      case 8:
-        //buzzer->playIndianaJones();
+      case 'T':
+        takeOff();
+        break;
+      case 'D':
+        isControlled = false;
+        break;
+      case ',':
+        if(readServos){
+        readY = readString.toInt();
+        readString = "";
+        readServos = false;
+        servoX->moveTo(readX*-1);
+        servoY->moveTo(readY*-1);
+        isControlled = true;
         break;
       default:
-        
-        ;
+        readString += c;
+      }
+    }
+  }
 
-    }
-    //Button is being held
-    if (isControlled)
-    {
-      //need a function that handles our balance detection while moving in a direction, so we're not looking to stay perfectly balanced
-    }
+  //Button is being held
+  if (!isControlled)
+  {
+    PIDStabilize();
+    //need a function that handles our balance detection while moving in a direction, so we're not looking to stay perfectly balanced
   }
 }
 void PIDStabilize(){
   balanceController->readAccelerometerValues();
   PID->stabilize();
-  float filteredX = xFilter.filter(servoX->hoverSetPoint - (outputX/2));
-  float filteredY = yFilter.filter(servoY->hoverSetPoint - (outputY/2));
+  float filteredX = xFilter.filter((outputX/2));
+  float filteredY = yFilter.filter((outputY/2));
   servoX->moveTo((int)filteredX);
   servoY->moveTo((int)filteredY);
-  Serial.print("x output:");
-  Serial.print(outputX);
-  Serial.println(x);
-  delay(200);
+  Serial.print("X: "); Serial.println(x);
+  // Serial.print(filteredX);
+  Serial.print("Y: "); Serial.println(y);
+  // char buff[16];
+
+  // Apparently you don't need this for writing to the serial, print works just fine.
+  // String outStream = "X: " + String(x, 2) + "\nY: " + String(y, 2);
+  // outStream.toCharArray(buff, sizeof(buff));
+  // Serial.write(buff);
+  delay(10);
 }
 
 

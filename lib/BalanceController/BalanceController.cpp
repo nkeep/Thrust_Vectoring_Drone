@@ -17,12 +17,17 @@ void BalanceController::readAccelerometerValues(){
     if(!accel.begin()){
         while(1);
     }
-    sensors_event_t event;
 
-    this->accel.getEvent(&event);
+    for(int i = 0; i < 5; i++){
+        sensors_event_t event;
+        this->accel.getEvent(&event);
 
-    *this->x = (double)event.acceleration.x;
-    *this->y = (double)event.acceleration.y;
-    *this->z = (double)event.acceleration.z;
-
+        *this->x += (double)event.acceleration.x;
+        *this->y += (double)event.acceleration.y;
+        *this->z += (double)event.acceleration.z;
+        delay(5);
+    }
+    *this->x /= 5;
+    *this->y /= 5;
+    *this->z /= 5;
 }

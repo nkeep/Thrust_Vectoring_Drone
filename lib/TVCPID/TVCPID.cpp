@@ -16,31 +16,32 @@ void TVCPID::begin(){
     this->yPID = new PID(this->y, this->outputY, &this->setPointY, this->kp,this->ki,this->kd, DIRECT);
     this->xPID->SetMode(AUTOMATIC);
     this->yPID->SetMode(AUTOMATIC);
-    this->xPID->SetOutputLimits(0, 30);
-    this->yPID->SetOutputLimits(0, 30);
+    this->xPID->SetOutputLimits(0, 28);
+    this->yPID->SetOutputLimits(0, 28);
+    this->xPID->SetControllerDirection(REVERSE);
 }
 
 void TVCPID::stabilize(){
     if(this->prevXVal < this->setPointX && *this->x >= this->setPointX){
-        this->xPID->SetOutputLimits(-30,0);
-        if(*this->x > this->setPointX + .2){
+        this->xPID->SetOutputLimits(0,28);
+        if(*this->x > this->setPointX - .2){
             this->xPID->Compute();
         }
     }else if(this->prevXVal > this->setPointX && *this->x <= this->setPointX){
-        this->xPID->SetOutputLimits(0,30);
-        if(*this->x < this->setPointX - .2){
+        this->xPID->SetOutputLimits(-28,0);
+        if(*this->x < this->setPointX + .2){
             this->xPID->Compute();
         }
     }else if(abs(*this->x) > this->setPointX + .2){
         this->xPID->Compute();
         }
     if(this->prevYVal < this->setPointY && *this->y >= this->setPointY){
-        this->yPID->SetOutputLimits(-30,0);
+        this->yPID->SetOutputLimits(-28,0);
         if(*this->y > this->setPointY + .2){
             this->yPID->Compute();
         }
     }else if(this->prevYVal > this->setPointY && *this->y <= this->setPointY){
-        this->yPID->SetOutputLimits(0,30);
+        this->yPID->SetOutputLimits(0,28);
         if(*this->y < this->setPointY - .2){
             this->yPID->Compute();
         }
