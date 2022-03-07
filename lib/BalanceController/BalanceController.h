@@ -5,7 +5,7 @@
 class BalanceController
 {
 public:
-    int numBalances = 0;
+    float resolution = 0;
     float prevXVal;
     float prevYVal;
     float prevAlt;

@@ -279,7 +279,10 @@ void Adafruit_ADXL345_Unified::getSensor(sensor_t *sensor) {
   sensor->sensor_id = _sensorID;
   sensor->type = SENSOR_TYPE_ACCELEROMETER;
   sensor->min_delay = 0;
+  // sensor->max_value = -156.9064F; /* -16g = 156.9064 m/s^2  */
+  // sensor->min_value = 156.9064F;  /*  16g = 156.9064 m/s^2  */
   sensor->max_value = -156.9064F; /* -16g = 156.9064 m/s^2  */
   sensor->min_value = 156.9064F;  /*  16g = 156.9064 m/s^2  */
-  sensor->resolution = 0.03923F;  /*  4mg = 0.0392266 m/s^2 */
+  // sensor->resolution = 0.03923F;  /*  4mg = 0.0392266 m/s^2 */
+  sensor->resolution = 0.15692F;  /*  16mg = 0.0392266 m/s^2 */
 }

@@ -2,10 +2,11 @@
 #include <TVCServo.h>
 #include <Arduino.h>
 
-TVCServo::TVCServo(int pin, int hoverValue){
+TVCServo::TVCServo(int pin, int hoverValue, String id){
     this->pin = pin;
     this->hoverSetPoint = hoverValue;
     this->currentVal = hoverValue;
+    this->id = id;
 }
 
 void TVCServo::begin(){
@@ -16,6 +17,7 @@ void TVCServo::begin(){
 void TVCServo::calibrate(int deg){
     this->self.write(this->hoverSetPoint + deg);
     this->hoverSetPoint = this->self.read();
+    Serial.print(this->id + " Calib: ");Serial.println(this->self.read());
 }
 
 void TVCServo::moveTo(int loc){
@@ -26,6 +28,8 @@ void TVCServo::moveTo(int loc){
             this->self.write(this->currentVal + i*direction);
         }
         this->currentVal = this->hoverSetPoint + loc;
+
+        Serial.print(this->id + " Servo: "); Serial.println(loc);
 
         //Serial.println("new val");
         // this->self.write(this->hoverSetPoint + loc);

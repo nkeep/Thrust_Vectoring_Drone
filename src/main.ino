@@ -61,10 +61,10 @@ void setup()
   motors = new TVCMotor(esc1_m, esc2_m);
   motors->begin();
 
-  servoX = new TVCServo(servoXPin, 120); //80, 115
+  servoX = new TVCServo(servoXPin, 120, "X"); //80, 115
   servoX->begin();
 
-  servoY = new TVCServo(servoYPin, 87); //67, 87
+  servoY = new TVCServo(servoYPin, 87, "Y"); //67, 87
   servoY->begin();
 
   buzzer = new TVCBuzzer(buzzerPin);
@@ -72,7 +72,7 @@ void setup()
 
   int batteryValue = analogRead(batteryPin);
   Serial.print("battery value: ");
-  Serial.print(batteryValue);
+  Serial.println(batteryValue);
   // if(batteryValue < 400){
   //   buzzer->playIndianaJones();
   // }
@@ -127,6 +127,7 @@ void loop()
         break;
       case 'T':
         takeOff();
+        buzzer->playIndianaJones();
         break;
       case 'D':
         isControlled = false;
@@ -160,9 +161,9 @@ void PIDStabilize(){
   float filteredY = yFilter.filter((outputY/2));
   servoX->moveTo((int)filteredX);
   servoY->moveTo((int)filteredY);
-  Serial.print("X: "); Serial.println(x);
+  //Serial.print("X: "); Serial.println(x);
   // Serial.print(filteredX);
-  Serial.print("Y: "); Serial.println(y);
+  //Serial.print("Y: "); Serial.println(y);
   // char buff[16];
 
   // Apparently you don't need this for writing to the serial, print works just fine.

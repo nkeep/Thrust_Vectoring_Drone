@@ -1,11 +1,13 @@
 #include <Servo.h>
+#include <Arduino.h>
 
 class TVCServo
 {
 public:
   Servo self;
   int pin, hoverSetPoint, currentVal;
-  TVCServo(int pin, int hoverValue);
+  String id;
+  TVCServo(int pin, int hoverValue, String id);
 
   void begin();
   void calibrate(int deg);

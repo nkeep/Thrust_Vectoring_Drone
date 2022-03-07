@@ -40,6 +40,7 @@ void TVCMotor::increaseSpeed(int ticks = 2){
         delay(10);
     }
     this->currentSpeed = this->currentSpeed + ticks*5;
+    Serial.print("Speed: "); Serial.println(this->currentSpeed);
 }
 
 void TVCMotor::decreaseSpeed(int ticks = 2){
@@ -51,6 +52,7 @@ void TVCMotor::decreaseSpeed(int ticks = 2){
         delay(10);
     }
     this->currentSpeed = this->currentSpeed - ticks*5;
+    Serial.print("Speed: "); Serial.println(this->currentSpeed);
 }
 
 
