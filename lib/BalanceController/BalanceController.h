@@ -5,13 +5,19 @@
 class BalanceController
 {
 public:
-    float resolution = 0;
+    float resolution = 0.4;
     float prevXVal;
     float prevYVal;
     float prevAlt;
     float floorHeight;
     float hoverHeight;
     double *x, *y, *z;
+    float windowX[5] = {1, 1, 1, 1, 1};
+    int windowElementX = 0;
+    float sumX = 5;
+    float windowY[5] = {1, 1, 1, 1, 1};
+    int windowElementY = 0;
+    float sumY = 5;
     Adafruit_ADXL345_Unified accel;
     Adafruit_BMP085 bmp;
 
