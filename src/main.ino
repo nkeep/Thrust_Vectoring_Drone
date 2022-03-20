@@ -102,7 +102,7 @@ void loop()
       } else if(c == 'S'){
         Serial.println("End of the calibration phase");
         balanceController->readAccelerometerValues();
-        PID = new TVCPID(x, y, &outputX, &outputY, &x, &y);
+        PID = new TVCPID(0, 0, &outputX, &outputY, &x, &y);
         PID->begin();
         inCalibration = false;
         break;
@@ -157,13 +157,15 @@ void loop()
 void PIDStabilize(){
   balanceController->readAccelerometerValues();
   PID->stabilize();
-  float filteredX = xFilter.filter((outputX/2));
-  float filteredY = yFilter.filter((outputY/2));
+  Serial.print("Output X: "); Serial.println(outputX);
+  Serial.print("Output Y: "); Serial.println(outputY);
+  float filteredX = xFilter.filter((outputX/PID->outputLimits * 14));
+  float filteredY = yFilter.filter((outputY/PID->outputLimits * 14));
   servoX->moveTo((int)filteredX);
   servoY->moveTo((int)filteredY);
-  //Serial.print("X: "); Serial.println(x);
+  Serial.print("Filtered X: "); Serial.println(filteredX);
   // Serial.print(filteredX);
-  //Serial.print("Y: "); Serial.println(y);
+  Serial.print("Filtered Y: "); Serial.println(filteredY);
   // char buff[16];
 
   // Apparently you don't need this for writing to the serial, print works just fine.

@@ -21,22 +21,28 @@ void BalanceController::readAccelerometerValues(){
     sensors_event_t event;
     this->accel.getEvent(&event);
 
-    this->sumX = this->sumX - this->windowX[this->windowElementX];
-    this->windowX[this->windowElementX] = (double)event.acceleration.x;
-    this->sumX = this->sumX + this->windowX[this->windowElementX];
-    this->windowElementX = (this->windowElementX + 1) % (sizeof(this->windowX)/sizeof(this->windowX[0]));
+    
+    // if(fabs((double)event.acceleration.x - *this->x) < 5){
+        this->sumX = this->sumX - this->windowX[this->windowElementX];
+        this->windowX[this->windowElementX] = (double)event.acceleration.x;
+        this->sumX = this->sumX + this->windowX[this->windowElementX];
+        this->windowElementX = (this->windowElementX + 1) % (sizeof(this->windowX)/sizeof(this->windowX[0]));
 
-    *this->x = this->sumX / sizeof(this->windowX);
+        *this->x = this->sumX / (sizeof(this->windowX)/sizeof(this->windowX[0]));
+        // *this->x = floor(abs((double)*this->x/this->resolution)) * this->resolution;
+        *this->x = (int)(*this->x/this->resolution) * this->resolution;
+    // }
+    
+    // if(fabs((double)event.acceleration.y - *this->y) < 5){
+        this->sumY = this->sumY - this->windowY[this->windowElementY];
+        this->windowY[this->windowElementY] = (double)event.acceleration.y;
+        this->sumY = this->sumY + this->windowY[this->windowElementY];
+        this->windowElementY = (this->windowElementY + 1) % (sizeof(this->windowY)/sizeof(this->windowY[0]));
 
-    this->sumY = this->sumY - this->windowY[this->windowElementY];
-    this->windowY[this->windowElementY] = (double)event.acceleration.y;
-    this->sumY = this->sumY + this->windowY[this->windowElementY];
-    this->windowElementY = (this->windowElementY + 1) % (sizeof(this->windowY)/sizeof(this->windowY[0]));
+        *this->y = this->sumY / (sizeof(this->windowY)/sizeof(this->windowY[0]));
 
-    *this->y = this->sumY / sizeof(this->windowY);
-
-    *this->x = floor(abs((double)*this->x/this->resolution)) * this->resolution;
-    *this->y = floor(abs((double)*this->y/this->resolution)) * this->resolution;
+        *this->y = (int)(*this->y/this->resolution) * this->resolution;
+    // }
 
     // for(int i = 0; i < 5; i++){
     //     sensors_event_t event;
