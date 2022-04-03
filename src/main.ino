@@ -61,10 +61,10 @@ void setup()
   motors = new TVCMotor(esc1_m, esc2_m);
   motors->begin();
 
-  servoX = new TVCServo(servoXPin, 120, "X"); //80, 115
+  servoX = new TVCServo(servoXPin, 124, "X"); //80, 115
   servoX->begin();
 
-  servoY = new TVCServo(servoYPin, 87, "Y"); //67, 87
+  servoY = new TVCServo(servoYPin, 82, "Y"); //67, 87
   servoY->begin();
 
   buzzer = new TVCBuzzer(buzzerPin);
@@ -81,7 +81,7 @@ void setup()
 
 void loop()
 {
-  delay(100);
+  delay(50);
   LED->changeColor(RED);
   readString = "";
   bool readServos = false; // Tells us to read the Y value if X is read during the loop
@@ -159,13 +159,16 @@ void PIDStabilize(){
   PID->stabilize();
   Serial.print("Output X: "); Serial.println(outputX);
   Serial.print("Output Y: "); Serial.println(outputY);
-  float filteredX = xFilter.filter((outputX/PID->outputLimits * 14));
-  float filteredY = yFilter.filter((outputY/PID->outputLimits * 14));
+  //Truncate values to our servo range (12 for now)
+  float filteredX = xFilter.filter((outputX/PID->outputLimits * 12));
+  float filteredY = yFilter.filter((outputY/PID->outputLimits * 12));
   servoX->moveTo((int)filteredX);
   servoY->moveTo((int)filteredY);
-  Serial.print("Filtered X: "); Serial.println(filteredX);
+  // servoX->moveTo((int)(outputX/PID->outputLimits * 12));
+  // servoY->moveTo((int)(outputY/PID->outputLimits * 12));
+  // Serial.print("Filtered X: "); Serial.println(filteredX);
   // Serial.print(filteredX);
-  Serial.print("Filtered Y: "); Serial.println(filteredY);
+  // Serial.print("Filtered Y: "); Serial.println(filteredY);
   // char buff[16];
 
   // Apparently you don't need this for writing to the serial, print works just fine.

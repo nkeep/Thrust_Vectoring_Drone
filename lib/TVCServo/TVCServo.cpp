@@ -42,9 +42,9 @@ void TVCServo::moveToHover(){
 }
 
 void TVCServo::moveForward(){
-    this->self.write(this->hoverSetPoint + 14);
+    this->self.write(this->hoverSetPoint + 12);
 }
 
 void TVCServo::moveBackward(){
-    this->self.write(this->hoverSetPoint - 14);
+    this->self.write(this->hoverSetPoint - 12);
 }

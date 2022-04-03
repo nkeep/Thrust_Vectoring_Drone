@@ -8,8 +8,8 @@ TVCMotor::TVCMotor(int pin1, int pin2){
 }
 
 void TVCMotor::begin(){
-    this->cwESC = new ESC(this->cwPin, 1100, 1550, 500);
-    this->ccwESC = new ESC(this->ccwPin, 1100, 1550, 500);
+    this->cwESC = new ESC(this->cwPin, 1100, 1700, 500);
+    this->ccwESC = new ESC(this->ccwPin, 1100, 1700, 500);
     // this->cwESC->calib();
     // this->cwESC->stop();
     this->cwESC->arm();
@@ -17,8 +17,8 @@ void TVCMotor::begin(){
     // this->ccwESC->stop();
     this->ccwESC->arm();
 
-    this->cwESC->speed(1550);
-    this->ccwESC->speed(1550);
+    this->cwESC->speed(1700);
+    this->ccwESC->speed(1700);
     delay(4000);
     this->cwESC->speed(1100);
     this->ccwESC->speed(1100);

@@ -18,7 +18,6 @@ void TVCPID::begin(){
     this->yPID->SetMode(AUTOMATIC);
     this->xPID->SetOutputLimits(0, this->outputLimits);
     this->yPID->SetOutputLimits(0, this->outputLimits);
-    this->xPID->SetControllerDirection(REVERSE);
 }
 
 void TVCPID::stabilize(){
@@ -28,25 +27,28 @@ void TVCPID::stabilize(){
     else{
         this->xPID->SetTunings(6,0,2);
     }
-    // if(this->prevXVal < this->setPointX && *this->x > this->setPointX){
-    if(*this->x > this->setPointX){
-        this->xPID->SetOutputLimits(0,this->outputLimits);
+    //If values are positive
+    if(*this->x > this->setPointX){ 
+        this->xPID->SetOutputLimits(-this->outputLimits,0);
         if(*this->x > this->setPointX - this->zeroZone){
             this->xPID->Compute();
         }
-    // }else if(this->prevXVal > this->setPointX && *this->x < this->setPointX){
-    } else if(*this->x < this->setPointX){
-        this->xPID->SetOutputLimits(-this->outputLimits,0);
+    //If values are negative
+    } else if(*this->x < this->setPointX){ 
+        this->xPID->SetOutputLimits(0, this->outputLimits);
         if(*this->x < this->setPointX + this->zeroZone){
             this->xPID->Compute();
         }
+    //If values are not in dead zone
     }else if(abs(*this->x) > this->setPointX + this->zeroZone){
         this->xPID->Compute();
         }
+    //If they are in the dead zone
     else{
         *this->outputX = 0;
     }
 
+    //Change strength based on accelerometer
     if(fabs(*this->y) > 4.0){
         this->yPID->SetTunings(10,0,4);
     }

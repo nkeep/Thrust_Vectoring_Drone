@@ -1,6 +1,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_ADXL345_U.h>
 #include <Adafruit_BMP085.h>
+#include <SimpleKalmanFilter.h>
 
 class BalanceController
 {
@@ -20,6 +21,9 @@ public:
     float sumY = 5;
     Adafruit_ADXL345_Unified accel;
     Adafruit_BMP085 bmp;
+    SimpleKalmanFilter *xkf;
+    SimpleKalmanFilter *ykf;
+
 
     BalanceController(double &x, double &y, double &z);
 

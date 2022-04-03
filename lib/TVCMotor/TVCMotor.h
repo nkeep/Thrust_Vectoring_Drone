@@ -9,9 +9,9 @@ public:
     ESC *ccwESC;
     int maxValue;
     int hoverValue;
-    int currentSpeed = 1000;
-    int cwSpeed = 1000;
-    int ccwSpeed = 1000;
+    int currentSpeed = 1100;
+    int cwSpeed = 1100;
+    int ccwSpeed = 1100;
     
     TVCMotor(int pin1, int pin2);
     void begin();
