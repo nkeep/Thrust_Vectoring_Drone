@@ -16,11 +16,7 @@ public:
     TVCMotor(int pin1, int pin2);
     void begin();
     void setSpeed(int val);
-    void increaseSpeed(int ticks = 2);
-    void decreaseSpeed(int ticks = 2);
-    void increaseSpeedCW(int ticks =2);
-    void increaseSpeedCCW(int ticks =2);
-    void decreaseSpeedCW(int ticks =2);
-    void decreaseSpeedCCW(int ticks =2);
+    void increaseSpeed(int ticks = 10);
+    void decreaseSpeed(int ticks = 10);
     void kill();
 };

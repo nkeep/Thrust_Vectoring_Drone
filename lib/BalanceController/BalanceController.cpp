@@ -11,10 +11,31 @@ BalanceController::BalanceController(double &x, double &y, double &z){
     this->z = &z;
     this->xkf = new SimpleKalmanFilter(.5, .5, .06);
     this->ykf = new SimpleKalmanFilter(.5, .5, .06);
+    this->zkf = new SimpleKalmanFilter(.5, .5, .06);
 }
 
 void BalanceController::begin(){
     this->accel = Adafruit_ADXL345_Unified();
+
+    if(!accel.begin()){
+        while(1);
+    }
+    sensors_event_t event;
+    this->accel.getEvent(&event);
+
+    this->startX = (int)(event.acceleration.x/this->resolution) * this->resolution;
+    this->startY = (int)(event.acceleration.y/this->resolution) * this->resolution;
+}
+
+void BalanceController::readZ(){
+    if(!accel.begin()){
+        while(1);
+    }
+    sensors_event_t event;
+    this->accel.getEvent(&event);
+
+    *this->z = this->zkf->updateEstimate((float)event.acceleration.z);
+    *this->z = (int)(*this->z/this->resolution) * this->resolution;
 }
 
 void BalanceController::readAccelerometerValues(){
@@ -27,9 +48,9 @@ void BalanceController::readAccelerometerValues(){
     *this->x = this->xkf->updateEstimate((float)event.acceleration.x);
     *this->y = this->ykf->updateEstimate((float)event.acceleration.y);
 
-    *this->x = (int)(*this->x/this->resolution) * this->resolution;
-    *this->y = (int)(*this->y/this->resolution) * this->resolution;
-
+    *this->x = ((int)(*this->x/this->resolution) * this->resolution) - this->startX;
+    *this->y = ((int)(*this->y/this->resolution) * this->resolution) - this->startY;
+    
 /*
     //Ignore values higher than 15
     if(fabs((double)event.acceleration.x - *this->x) < 15){

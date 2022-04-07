@@ -61,10 +61,10 @@ void setup()
   motors = new TVCMotor(esc1_m, esc2_m);
   motors->begin();
 
-  servoX = new TVCServo(servoXPin, 124, "X"); //80, 115
+  servoX = new TVCServo(servoXPin, 89, "X"); //124 = old design, new = 89
   servoX->begin();
 
-  servoY = new TVCServo(servoYPin, 82, "Y"); //67, 87
+  servoY = new TVCServo(servoYPin, 96, "Y"); //82 = old design, new = 96
   servoY->begin();
 
   buzzer = new TVCBuzzer(buzzerPin);
@@ -129,6 +129,9 @@ void loop()
         takeOff();
         buzzer->playIndianaJones();
         break;
+      case 'K':
+        motors->kill();
+        break;
       case 'D':
         isControlled = false;
         break;
@@ -138,7 +141,7 @@ void loop()
         readString = "";
         readServos = false;
         servoX->moveTo(readX*-1);
-        servoY->moveTo(readY*-1);
+        servoY->moveTo(readY);
         isControlled = true;
         break;
       default:
@@ -160,7 +163,7 @@ void PIDStabilize(){
   Serial.print("Output X: "); Serial.println(outputX);
   Serial.print("Output Y: "); Serial.println(outputY);
   //Truncate values to our servo range (12 for now)
-  float filteredX = xFilter.filter((outputX/PID->outputLimits * 12));
+  float filteredX = xFilter.filter((outputX/PID->outputLimits * 12)); //17 for old, 12 for new
   float filteredY = yFilter.filter((outputY/PID->outputLimits * 12));
   servoX->moveTo((int)filteredX);
   servoY->moveTo((int)filteredY);
@@ -182,6 +185,48 @@ void PIDStabilize(){
 
 void takeOff()
 {
-  motors->kill();
+  bool hasLifted = false;
+  int numZBalances = 0;
+
+  while(true){
+    delay(50);
+    while(Serial.available()) //Keep reading in case we get a kill signal during takeoff
+    {
+      char c = Serial.read();
+      if(c == 'K'){
+        motors->kill();
+        break;
+      }
+    }
+
+    balanceController->readZ();
+
+    if(!hasLifted){ //Don't have lift
+      if(z >= 4.0){
+      hasLifted = true;
+      }
+      else{
+        motors->increaseSpeed();
+      }
+    }
+    else{ //Have lift
+      if(z > .4){
+        motors->decreaseSpeed(2);
+        numZBalances = 0;
+      } else if(z < -.4){
+        motors->increaseSpeed(2);
+        numZBalances = 0;
+      } else{
+        numZBalances++;
+      }
+      if(numZBalances >= 20){
+        return;
+      }
+
+    }
+    
+
+  }
+  
   
 }

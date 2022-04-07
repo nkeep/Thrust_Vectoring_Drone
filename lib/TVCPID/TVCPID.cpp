@@ -18,24 +18,27 @@ void TVCPID::begin(){
     this->yPID->SetMode(AUTOMATIC);
     this->xPID->SetOutputLimits(0, this->outputLimits);
     this->yPID->SetOutputLimits(0, this->outputLimits);
+    this->xPID->SetControllerDirection(REVERSE); //Uncomment this line if using new drone
 }
 
 void TVCPID::stabilize(){
-    if(fabs(*this->x) > 4.0){ //More aggressive tuning when angle is large
-        this->xPID->SetTunings(10,0,4);
-    }
-    else{
-        this->xPID->SetTunings(6,0,2);
-    }
+    // if(fabs(*this->x) > 4.0){ //More aggressive tuning when angle is large
+    //     this->xPID->SetTunings(10,0,4);
+    // }
+    // else{
+    //     this->xPID->SetTunings(6,0,2);
+    // }
     //If values are positive
     if(*this->x > this->setPointX){ 
-        this->xPID->SetOutputLimits(-this->outputLimits,0);
+        // this->xPID->SetOutputLimits(-this->outputLimits,0); // old drone
+        this->xPID->SetOutputLimits(0, this->outputLimits); // new drone
         if(*this->x > this->setPointX - this->zeroZone){
             this->xPID->Compute();
         }
     //If values are negative
     } else if(*this->x < this->setPointX){ 
-        this->xPID->SetOutputLimits(0, this->outputLimits);
+        //this->xPID->SetOutputLimits(0, this->outputLimits); //old drone
+        this->xPID->SetOutputLimits(-this->outputLimits, 0); //new drone
         if(*this->x < this->setPointX + this->zeroZone){
             this->xPID->Compute();
         }
@@ -49,12 +52,12 @@ void TVCPID::stabilize(){
     }
 
     //Change strength based on accelerometer
-    if(fabs(*this->y) > 4.0){
-        this->yPID->SetTunings(10,0,4);
-    }
-    else{
-        this->yPID->SetTunings(6,0,2);
-    }
+    // if(fabs(*this->y) > 4.0){
+    //     this->yPID->SetTunings(10,0,4);
+    // }
+    // else{
+    //     this->yPID->SetTunings(6,0,2);
+    // }
     // if(this->prevYVal < this->setPointY && *this->y > this->setPointY){
     if(*this->y > this->setPointY){
         this->yPID->SetOutputLimits(-this->outputLimits,0);

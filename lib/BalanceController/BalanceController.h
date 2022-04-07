@@ -7,22 +7,24 @@ class BalanceController
 {
 public:
     float resolution = 0.4;
-    float prevXVal;
-    float prevYVal;
-    float prevAlt;
+    // float prevXVal;
+    // float prevYVal;
+    // float prevAlt;
     float floorHeight;
     float hoverHeight;
     double *x, *y, *z;
-    float windowX[5] = {1, 1, 1, 1, 1};
-    int windowElementX = 0;
-    float sumX = 5;
-    float windowY[5] = {1, 1, 1, 1, 1};
-    int windowElementY = 0;
-    float sumY = 5;
+    double startX, startY;
+    // float windowX[5] = {1, 1, 1, 1, 1};
+    // int windowElementX = 0;
+    // float sumX = 5;
+    // float windowY[5] = {1, 1, 1, 1, 1};
+    // int windowElementY = 0;
+    // float sumY = 5;
     Adafruit_ADXL345_Unified accel;
     Adafruit_BMP085 bmp;
     SimpleKalmanFilter *xkf;
     SimpleKalmanFilter *ykf;
+    SimpleKalmanFilter *zkf;
 
 
     BalanceController(double &x, double &y, double &z);
@@ -30,4 +32,5 @@ public:
     void begin();
 
     void readAccelerometerValues();
+    void readZ();
 };

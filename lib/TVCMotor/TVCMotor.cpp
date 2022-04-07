@@ -31,27 +31,27 @@ void TVCMotor::setSpeed(int val){
     this->currentSpeed = val;
 }
 
-void TVCMotor::increaseSpeed(int ticks = 2){
+void TVCMotor::increaseSpeed(int ticks = 10){
     //Increase the speed by a little
     for (int i = 0; i < ticks; i++)
     {
-        this->cwESC->speed(this->currentSpeed + (i + 1)*5);
-        this->ccwESC->speed(this->currentSpeed + (i + 1)*5);
-        delay(10);
+        this->cwESC->speed(this->currentSpeed + (i + 1));
+        this->ccwESC->speed(this->currentSpeed + (i + 1));
+        delay(5);
     }
-    this->currentSpeed = this->currentSpeed + ticks*5;
+    this->currentSpeed = this->currentSpeed + ticks;
     Serial.print("Speed: "); Serial.println(this->currentSpeed);
 }
 
-void TVCMotor::decreaseSpeed(int ticks = 2){
+void TVCMotor::decreaseSpeed(int ticks = 10){
     //Decrease the speed by a little
     for (int i = 0; i < ticks; i++)
     {
-        this->cwESC->speed(this->currentSpeed - (i - 1)*5);
-        this->ccwESC->speed(this->currentSpeed - (i - 1)*5);
-        delay(10);
+        this->cwESC->speed(this->currentSpeed - (i - 1));
+        this->ccwESC->speed(this->currentSpeed - (i - 1));
+        delay(5);
     }
-    this->currentSpeed = this->currentSpeed - ticks*5;
+    this->currentSpeed = this->currentSpeed - ticks;
     Serial.print("Speed: "); Serial.println(this->currentSpeed);
 }
 
